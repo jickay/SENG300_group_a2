@@ -1,10 +1,14 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.jar.*;
+
  
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -28,7 +32,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 public class Main {
 	
-	public static String BASEDIR = "C:\\Users\\jicka_000\\eclipse-workspace\\SENG300_group_a1\\src\\";
+	public static String BASEDIR = "C:\\Users\\jicka_000\\eclipse-workspace\\SENG300_group_a2\\src\\";
 	public static String dirPath;
 
 	public static void main(String[] args) {
@@ -39,6 +43,7 @@ public class Main {
 		try {
 			dirPath = BASEDIR + args[0];
 			aType = ParseFilesInDir(dirPath,aType,typeArg);
+//			aType = ParseJarInDir(dirPath,aType,typeArg);
 			
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("Error with filename");
@@ -135,18 +140,29 @@ public class Main {
  
 		 for (File f : files ) {
 			 filePath = f.getAbsolutePath();
-			 if(f.isFile()){
+			 if (f.getName().endsWith(".jar")) {
+				 parseJar(f,aTypes);
+			 } else if (f.getName().endsWith(".java")){
 				 // Get new types from each file and add to allTypes list
 				 aTypes = parse(readFileToString(filePath),aTypes,typeArg);
-//				 for (Types aType : newTypes) {
-//					 allTypes.add(aType);
-//				 }
 			 }
 		 }
 		 
 		 return aTypes;
 	}
 	
+	public static Types parseJar(File jarFile, Types aTypes) throws IOException {
+		JarFile jFile = new JarFile(jarFile);
+		Enumeration<JarEntry> jEntries = jFile.entries();
+		while(jEntries.hasMoreElements()) {
+			String name = jEntries.nextElement().toString();
+			System.out.println(name);
+		}
+		jFile.close();
+		return aTypes;
+	}
+	
+	// Counting methods
 	public static void setDeclaration(Types aType, String name) {
 		// If type already exists add to declaration count
 		if (aType.name.matches(name)) {

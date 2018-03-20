@@ -3,13 +3,16 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.*;
+import java.util.zip.ZipEntry;
 
- 
+import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -141,7 +144,7 @@ public class Main {
 		 for (File f : files ) {
 			 filePath = f.getAbsolutePath();
 			 if (f.getName().endsWith(".jar")) {
-				 parseJar(f,aTypes);
+				 parseJar(f,aTypes,typeArg);
 			 } else if (f.getName().endsWith(".java")){
 				 // Get new types from each file and add to allTypes list
 				 aTypes = parse(readFileToString(filePath),aTypes,typeArg);
@@ -151,12 +154,17 @@ public class Main {
 		 return aTypes;
 	}
 	
-	public static Types parseJar(File jarFile, Types aTypes) throws IOException {
+	public static Types parseJar(File jarFile, Types aTypes, String typeArg) throws IOException {
 		JarFile jFile = new JarFile(jarFile);
 		Enumeration<JarEntry> jEntries = jFile.entries();
 		while(jEntries.hasMoreElements()) {
-			String name = jEntries.nextElement().toString();
-			System.out.println(name);
+			ZipEntry jarElem = jEntries.nextElement();
+			System.out.println(jarElem.getName());
+			
+			if (jarElem.getName().endsWith(".java")) {
+				String filePath = BASEDIR + jarElem.getName();
+				aTypes = parse(readFileToString(filePath),aTypes,typeArg);
+			}
 		}
 		jFile.close();
 		return aTypes;
